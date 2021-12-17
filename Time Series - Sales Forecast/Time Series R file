@@ -1,0 +1,66 @@
+# there's a summary paper for this project with R code and results attached at the end. A summary paper is required as part of the project
+
+
+# Install and Load Packages
+install.packages("astsa")
+library(astsa)
+install.packages("TSA")
+library(TSA)
+
+
+# read data and univariate time series data analysis
+salesdata=read.table("SalesData.csv",sep = ",", header=TRUE)
+salesdata=ts(salesdata) #this makes sure R knows that x is a time series #time series plot of x with points marked as "o"
+sales=salesdata[,3]
+plot(sales, type="b")
+salesm = matrix(sales, ncol=12,byrow=TRUE)
+col.means=apply(salesm,2,mean)
+plot(col.means,type="b", main="Monthly Means Plot for sales", xlab="Month", ylab="Mean")
+sales=ts(sales, freq =12)
+stl.sales=stl(sales, "periodic")
+plot(stl(sales, "periodic"))
+stl.sales
+results=stl(sales,"periodic")
+remainder=results$time.series[,3]
+mean(remainder)
+plot(remainder)
+acf2(remainder)
+
+# Model Fitting 
+sales.arima1=arima(remainder,order=c(0,0,2), include.mean=F)
+sales.arima1
+acf2(sales.arima1$residuals[-1],col="MA2 - sales ARIMA model residuals", is.df=F)
+
+
+
+sales.arima2=arima(remainder,order=c(0,0,1), include.mean=F)
+sales.arima2
+acf2(sales.arima2$residuals[-1],col="MA1 - sales ARIMA model residuals", is.df=F)
+
+sales.arima3=arima(remainder,order=c(1,0,0), include.mean=F)
+sales.arima3
+acf2(sales.arima3$residuals[-1],col="AR1 - sales ARIMA model residuals", is.df=F)
+
+
+diff12=diff(sales,12)
+acf2(diff12)
+diff1=diff(sales,1)
+acf2(diff1)
+diff12and1=diff(diff12,1)
+acf2(diff12and1)
+
+# Evaluation 
+sarima(sales,0,1,2,0,1,1,12)
+sarima(sales,0,1,2,1,1,0,12)
+sarima(sales,0,1,1,0,1,1,12)
+
+# Forecast
+sarima.for(sales,12,0,1,1,0,1,1,12)
+
+
+
+
+
+
+
+
